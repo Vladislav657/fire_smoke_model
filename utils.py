@@ -1,5 +1,5 @@
 import numpy as np
-import torchvision.transforms.v2 as tfs_v2
+import os
 import torch
 from PIL import Image
 from segment_anything import SamPredictor
@@ -7,7 +7,9 @@ from segment_anything import SamPredictor
 
 def get_mask_from_data(img: str, bboxes: dict, predictor: SamPredictor) -> torch.Tensor:
     # Загрузка изображения через PIL ---
-    image_pil = Image.open(img) # Чтение изображения
+    path = os.path.join("dataset_fire_smoke", img)
+
+    image_pil = Image.open(path) # Чтение изображения
     image = np.array(image_pil)  # Конвертация в numpy-массив (H, W, 3) в RGB
 
     # Создание пустой маски (фон = 0) ---

@@ -1,41 +1,39 @@
 import os
 import json
 from PIL import Image
-
 import torch.utils.data as data
-
-from segment_anything import SamPredictor, sam_model_registry
-from utils import get_mask_from_data
+import torch
 
 
 class FireSmokeDataset(data.Dataset):
-    def __init__(self, path, train=True, transform=None):
-        self.transform = transform
+    def __init__(self, path, train=True, img_transform=None, mask_transform=None):
+        self.img_transform = img_transform
+        self.mask_transform = mask_transform
+        self.path = path
 
         with open(os.path.join(path, "format_train.json" if train else "format_val.json")) as f:
             bboxes = json.load(f)
 
         self.files = []
-        self.targets = []
         self.length = 0
 
-        sam = sam_model_registry["vit_b"](checkpoint="sam_vit_b_01ec64.pth")  # Модель 'vit_b'
-        self.predictor = SamPredictor(sam)
-
-        for key, value in bboxes.items():
-            self.files.append(os.path.join(path, key))
-            self.targets.append(value)
+        for key  in bboxes.keys():
+            self.files.append(str(os.path.join(self.path, key)))
             self.length += 1
 
     def __getitem__(self, index):
-        img, bboxes = str(self.files[index]), self.targets[index]
-        mask = get_mask_from_data(img, bboxes, self.predictor)
-        img = Image.open(img).convert('RGB')
+        img = self.files[index]
+        image = Image.open(img).convert('RGB')
+        with open(f"{img.rsplit('.', 1)[0]}.json") as f:
+            mask = torch.Tensor(list(json.load(f).values())[0])
 
-        if self.transform:
-            img = self.transform(img)
+        if self.img_transform:
+            image = self.img_transform(image)
 
-        return img, mask
+        if self.mask_transform:
+            mask = self.mask_transform(mask)
+
+        return image, mask
 
     def __len__(self):
         return self.length

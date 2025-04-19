@@ -14,14 +14,19 @@ from losses import SoftDiceLoss
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
-transforms = tfs_v2.Compose([
-    # tfs_v2.CenterCrop(224),
+img_transforms = tfs_v2.Compose([
+    tfs_v2.CenterCrop(384),
     tfs_v2.ToImage(),
     tfs_v2.ToDtype(torch.float32, scale=True),
 ])
 
-d_train = FireSmokeDataset("dataset_fire_smoke", transform=transforms)
-train_data = data.DataLoader(d_train, batch_size=1, shuffle=True,
+mask_transforms = tfs_v2.Compose([
+    tfs_v2.CenterCrop(384),
+    tfs_v2.ToDtype(torch.float32),
+])
+
+d_train = FireSmokeDataset("dataset_fire_smoke", img_transform=img_transforms, mask_transform=mask_transforms)
+train_data = data.DataLoader(d_train, batch_size=2, shuffle=True,
                              pin_memory=True)  # pin_memory ускоряет передачу на GPU
 
 model = FireSmokeModel(3, 3).to(device)  # Переносим модель на устройство сразу
@@ -56,18 +61,3 @@ for epoch in range(epochs):
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
     }, 'fire_smoke_model.tar')
-
-# from utils import *
-# import json
-# from segment_anything import SamPredictor, sam_model_registry
-#
-# with open("dataset_fire_smoke/format_train.json") as f:
-#     data = json.load(f)
-#
-# sam = sam_model_registry["vit_b"](checkpoint="sam_vit_b_01ec64.pth")  # Модель 'vit_b'
-# predictor = SamPredictor(sam)
-# mask = get_mask_from_data("dataset_fire_smoke/train/2fe8d7da-86fc-47fc-a685-8b1ad1dd75c6.jpg",
-#                           data["train/2fe8d7da-86fc-47fc-a685-8b1ad1dd75c6.jpg"], predictor,
-#                           tfs_v2.ToImage())
-# save_mask(mask, "mask.png")
-
