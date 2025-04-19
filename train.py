@@ -41,6 +41,13 @@ for epoch in range(epochs):
     loss_mean = 0
     lm_count = 0
 
+    try:
+        st = torch.load("fire_smoke_model.tar", map_location=device, weights_only=True)
+        model.load_state_dict(st['model_state_dict'])
+        optimizer.load_state_dict(st['optimizer_state_dict'])
+    except FileNotFoundError:
+        print(f"Model not found. Starting training from scratch.")
+
     train_tqdm = tqdm(train_data, leave=True)
     for x_train, y_train in train_tqdm:
         x_train, y_train = x_train.to(device), y_train.to(device)  # Переносим данные на устройство

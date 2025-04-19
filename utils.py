@@ -47,6 +47,7 @@ def get_mask_from_data(img: str, bboxes: dict, predictor: SamPredictor) -> torch
 
 # Визуализация ---
 def save_mask(one_hot_masks: torch.Tensor, save_path: str) -> None:
+    one_hot_masks = one_hot_masks.argmax(dim=0)
     one_hot_masks = one_hot_masks.numpy().astype(np.uint8)
     # Палитра цветов (фон: черный, класс 1: красный, класс 2: зеленый)
     palette = np.array([
@@ -56,10 +57,7 @@ def save_mask(one_hot_masks: torch.Tensor, save_path: str) -> None:
     ])
 
     # Преобразуем маску в цветное изображение
-    colored_mask = np.zeros((one_hot_masks.shape[1], one_hot_masks.shape[2]), dtype=np.uint8)
-    for cls in range(3):
-        colored_mask += one_hot_masks[cls] * cls
-    colored_mask = palette[colored_mask]
+    colored_mask = palette[one_hot_masks]
 
     # Сохранение маски ---
     mask_pil = Image.fromarray(colored_mask.astype(np.uint8))
