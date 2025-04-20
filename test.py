@@ -1,8 +1,9 @@
 import torchvision.transforms.v2 as tfs_v2
 
-from models import FireSmokeModel
+from models import ResNetUNet
 from utils import *
 
+from torchvision.models import ResNet
 
 img_transforms = tfs_v2.Compose([
     tfs_v2.CenterCrop(384),
@@ -14,7 +15,7 @@ img = "val/1_23.jpg"
 image = Image.open(os.path.join("dataset_fire_smoke", img))
 image = img_transforms(image)
 
-model = FireSmokeModel(3, 3)
+model = ResNetUNet(3)
 
 st = torch.load("fire_smoke_model.tar", weights_only=True)
 
@@ -30,3 +31,4 @@ x = x.permute(1,2,0).numpy()
 x = np.clip(x, 0, 255).astype(np.uint8)
 x = Image.fromarray(x)
 x.save("1_23.jpg")
+print(model)

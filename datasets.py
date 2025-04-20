@@ -9,22 +9,18 @@ class FireSmokeDataset(data.Dataset):
     def __init__(self, path, train=True, img_transform=None, mask_transform=None):
         self.img_transform = img_transform
         self.mask_transform = mask_transform
-        self.path = path
+        self.path = os.path.join(path, 'train' if train else 'val')
 
-        with open(os.path.join(path, "format_train.json" if train else "format_val.json")) as f:
-            bboxes = json.load(f)
-
-        self.files = []
-        self.length = 0
-
-        for key  in bboxes.keys():
-            self.files.append(str(os.path.join(self.path, key)))
-            self.length += 1
+        self.images = list(map(lambda x: os.path.join(self.path, 'images', x),
+                               os.listdir(os.path.join(self.path, 'images'))))
+        self.masks = list(map(lambda x: os.path.join(self.path, 'masks', x),
+                               os.listdir(os.path.join(self.path, 'masks'))))
+        self.length = len(self.images)
 
     def __getitem__(self, index):
-        img = self.files[index]
+        img, msk = self.images[index], self.masks[index]
         image = Image.open(img).convert('RGB')
-        with open(f"{img.rsplit('.', 1)[0]}.json") as f:
+        with open(msk) as f:
             mask = torch.Tensor(list(json.load(f).values())[0])
 
         if self.img_transform:

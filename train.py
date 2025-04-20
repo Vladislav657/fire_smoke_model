@@ -7,7 +7,7 @@ import torch.nn as nn
 from tqdm import tqdm
 
 from datasets import FireSmokeDataset
-from models import FireSmokeModel
+from models import ResNetUNet
 from losses import SoftDiceLoss
 
 # Определяем устройство (GPU, если доступно)
@@ -29,7 +29,7 @@ d_train = FireSmokeDataset("dataset_fire_smoke", img_transform=img_transforms, m
 train_data = data.DataLoader(d_train, batch_size=2, shuffle=True,
                              pin_memory=True)  # pin_memory ускоряет передачу на GPU
 
-model = FireSmokeModel(3, 3).to(device)  # Переносим модель на устройство сразу
+model = ResNetUNet(3).to(device)  # Переносим модель на устройство сразу
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 loss_1 = nn.CrossEntropyLoss().to(device)
 loss_2 = SoftDiceLoss().to(device)
@@ -42,7 +42,7 @@ for epoch in range(epochs):
     lm_count = 0
 
     try:
-        st = torch.load("fire_smoke_model.tar", map_location=device, weights_only=True)
+        st = torch.load("fire_smoke_model_res_unet.tar", map_location=device, weights_only=True)
         model.load_state_dict(st['model_state_dict'])
         optimizer.load_state_dict(st['optimizer_state_dict'])
     except FileNotFoundError:
@@ -67,4 +67,4 @@ for epoch in range(epochs):
     torch.save({
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
-    }, 'fire_smoke_model.tar')
+    }, 'fire_smoke_model_res_unet.tar')
