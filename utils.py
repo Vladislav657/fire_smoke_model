@@ -5,11 +5,10 @@ from PIL import Image
 from segment_anything import SamPredictor
 
 
+'''функция получения маски с помощью модели SAM'''
 def get_mask_from_data(img: str, bboxes: dict, predictor: SamPredictor) -> torch.Tensor:
     # Загрузка изображения через PIL ---
-    path = os.path.join("dataset_fire_smoke", img)
-
-    image_pil = Image.open(path) # Чтение изображения
+    image_pil = Image.open(img) # Чтение изображения
     image = np.array(image_pil)  # Конвертация в numpy-массив (H, W, 3) в RGB
 
     # Создание пустой маски (фон = 0) ---
@@ -45,15 +44,15 @@ def get_mask_from_data(img: str, bboxes: dict, predictor: SamPredictor) -> torch
     return torch.from_numpy(one_hot_masks).float()
 
 
-# Визуализация ---
+# Визуализация маски
 def save_mask(one_hot_masks: torch.Tensor, save_path: str) -> None:
     one_hot_masks = one_hot_masks.argmax(dim=0)
     one_hot_masks = one_hot_masks.numpy().astype(np.uint8)
-    # Палитра цветов (фон: черный, класс 1: красный, класс 2: зеленый)
+
     palette = np.array([
         [0, 0, 0],  # Фон (0)
-        [0, 0, 255],  # Класс 1 (красный)
-        [255, 0, 0],  # Класс 2 (зеленый)
+        [0, 0, 255],  # Класс 1 - дым
+        [255, 0, 0],  # Класс 2 - огонь
     ])
 
     # Преобразуем маску в цветное изображение

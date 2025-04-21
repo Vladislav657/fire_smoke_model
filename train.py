@@ -1,3 +1,6 @@
+
+'''обучение модели'''
+
 import torch
 import torch.utils.data as data
 import torchvision.transforms.v2 as tfs_v2
@@ -26,27 +29,27 @@ mask_transforms = tfs_v2.Compose([
 ])
 
 d_train = FireSmokeDataset("dataset_fire_smoke", img_transform=img_transforms, mask_transform=mask_transforms)
-train_data = data.DataLoader(d_train, batch_size=2, shuffle=True,
+train_data = data.DataLoader(d_train, batch_size=4, shuffle=True,
                              pin_memory=True)  # pin_memory ускоряет передачу на GPU
 
 model = ResNetUNet(3).to(device)  # Переносим модель на устройство сразу
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.01, weight_decay=0.0001)
 loss_1 = nn.CrossEntropyLoss().to(device)
 loss_2 = SoftDiceLoss().to(device)
 
 epochs = 10
 model.train()
 
+try:
+    st = torch.load("fire_smoke_model_res_unet.tar", map_location=device, weights_only=True)
+    model.load_state_dict(st['model_state_dict'])
+    optimizer.load_state_dict(st['optimizer_state_dict'])
+except FileNotFoundError:
+    print(f"Model not found. Starting training from scratch.")
+
 for epoch in range(epochs):
     loss_mean = 0
     lm_count = 0
-
-    try:
-        st = torch.load("fire_smoke_model_res_unet.tar", map_location=device, weights_only=True)
-        model.load_state_dict(st['model_state_dict'])
-        optimizer.load_state_dict(st['optimizer_state_dict'])
-    except FileNotFoundError:
-        print(f"Model not found. Starting training from scratch.")
 
     train_tqdm = tqdm(train_data, leave=True)
     for x_train, y_train in train_tqdm:
