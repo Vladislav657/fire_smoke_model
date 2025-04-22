@@ -14,17 +14,18 @@ from models import ResNetUNet
 from losses import SoftDiceLoss
 
 # Определяем устройство (GPU, если доступно)
+# device = torch.device('cpu')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
 img_transforms = tfs_v2.Compose([
-    tfs_v2.CenterCrop(384),
+    tfs_v2.CenterCrop(512),
     tfs_v2.ToImage(),
     tfs_v2.ToDtype(torch.float32, scale=True),
 ])
 
 mask_transforms = tfs_v2.Compose([
-    tfs_v2.CenterCrop(384),
+    tfs_v2.CenterCrop(512),
     tfs_v2.ToDtype(torch.float32),
 ])
 
@@ -33,7 +34,7 @@ train_data = data.DataLoader(d_train, batch_size=4, shuffle=True,
                              pin_memory=True)  # pin_memory ускоряет передачу на GPU
 
 model = ResNetUNet(3).to(device)  # Переносим модель на устройство сразу
-optimizer = optim.Adam(model.parameters(), lr=0.01, weight_decay=0.0001)
+optimizer = optim.Adam(model.parameters(), lr=0.01)
 loss_1 = nn.CrossEntropyLoss().to(device)
 loss_2 = SoftDiceLoss().to(device)
 

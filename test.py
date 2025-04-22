@@ -14,13 +14,13 @@ from utils import *
 from datasets import FireSmokeDataset
 
 img_transforms = tfs_v2.Compose([
-    tfs_v2.CenterCrop(384),
+    tfs_v2.CenterCrop(512),
     tfs_v2.ToImage(),
     tfs_v2.ToDtype(torch.float32, scale=True),
 ])
 
 mask_transforms = tfs_v2.Compose([
-    tfs_v2.CenterCrop(384),
+    tfs_v2.CenterCrop(512),
     tfs_v2.ToDtype(torch.float32),
 ])
 
